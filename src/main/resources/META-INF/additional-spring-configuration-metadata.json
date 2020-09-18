@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "app.user.queue-name",
+      "type": "java.lang.String",
+      "description": "Description for app.user.queue-name."
+  }
+] }

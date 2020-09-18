@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
+import reactor.rabbitmq.RpcClient;
 import reactor.rabbitmq.Sender;
+
+import java.util.UUID;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/rabbitmq")
@@ -22,10 +26,20 @@ public class SampleSender {
     }
 
     @PostMapping("/send")
-    private Mono<String> getEmployeeById(@RequestBody Message message) {
+    private Mono<String> send(@RequestBody Message message) {
         LOGGER.debug("Sending Message {}", message.getMessage());
         return sender.send(createMessage(message))
                 .thenReturn("OK");
+    }
+
+    @PostMapping("/req/reply")
+    private Mono<String> reqReply(@RequestBody Message message) {
+        LOGGER.debug("Sending Message {}", message.getMessage());
+        Supplier<String> correlationIdSupplier = () -> UUID.randomUUID().toString();
+        RpcClient client = sender.rpcClient(message.getExchange(), message.getRoutingKey(), correlationIdSupplier);
+        Mono<RpcClient.RpcRequest> request = Mono.just(new RpcClient.RpcRequest("request".getBytes()));
+        return client.rpc(request)
+                .map(delivery -> new String(delivery.getBody()));
     }
 
     private Mono<OutboundMessage> createMessage(Message message) {

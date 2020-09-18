@@ -39,8 +39,16 @@ public class Config {
     public String queue(Sender sender, @Value("${app.user.queue-name}") String queueName) {
         // block for testing purpose
         sender.declare(QueueSpecification.queue(queueName)).block();
+        sender.bindQueue(BindingSpecification.binding().queue(queueName).exchange("rabbitmq2").routingKey("")).block();
         LOGGER.debug("queue {} configured", queueName);
         return queueName;
+    }
+
+    @Bean
+    public String definitions(Sender sender) {
+        sender.declareExchange(ExchangeSpecification.exchange("rabbitmq2").type("fanout")).block();
+        LOGGER.debug("configuration created");
+        return "OK";
     }
 
 }
