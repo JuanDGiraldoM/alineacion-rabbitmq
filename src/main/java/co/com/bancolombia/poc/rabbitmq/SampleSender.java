@@ -1,6 +1,6 @@
 package co.com.bancolombia.poc.rabbitmq;
 
-import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Delivery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,18 +12,17 @@ import reactor.rabbitmq.OutboundMessage;
 import reactor.rabbitmq.RpcClient;
 import reactor.rabbitmq.Sender;
 
-import java.util.UUID;
-import java.util.function.Supplier;
-
 @RestController
 @RequestMapping("/rabbitmq")
 public class SampleSender {
     private static final Logger LOGGER = LoggerFactory.getLogger(SampleSender.class);
     private final Sender sender;
+    private final RpcClient client;
 
     public SampleSender(Sender sender) {
         LOGGER.debug("Rest created");
         this.sender = sender;
+        client = sender.rpcClient("animal-direct", "jcgalvis");
     }
 
     @PostMapping("/send")
@@ -34,13 +33,10 @@ public class SampleSender {
     }
 
     @PostMapping("/req/reply")
-    private Mono<String> reqReply(@RequestBody Message message) {
+    private Mono<Delivery> reqReply(@RequestBody Message message) {
         LOGGER.debug("Sending Message {}", message.getMessage());
-        Supplier<String> correlationIdSupplier = () -> UUID.randomUUID().toString();
-        RpcClient client = sender.rpcClient(message.getExchange(), message.getRoutingKey(), correlationIdSupplier);
         Mono<RpcClient.RpcRequest> request = Mono.just(new RpcClient.RpcRequest("request".getBytes()));
-        return client.rpc(request)
-                .map(delivery -> new String(delivery.getBody()));
+        return client.rpc(request);
     }
 
     private Mono<OutboundMessage> createMessage(Message message) {
