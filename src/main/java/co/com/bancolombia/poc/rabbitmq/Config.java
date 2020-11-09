@@ -2,6 +2,7 @@ package co.com.bancolombia.poc.rabbitmq;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,11 +16,16 @@ import reactor.rabbitmq.*;
 public class Config {
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
+    @SneakyThrows
     @Bean
     public Mono<Connection> connectionMono(RabbitProperties rabbitProperties) {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(rabbitProperties.getHost());
         connectionFactory.setPort(rabbitProperties.getPort());
+        connectionFactory.setVirtualHost(rabbitProperties.getVirtualHost());
+        if (rabbitProperties.getSsl().getEnabled()) {
+            connectionFactory.useSslProtocol();
+        }
         connectionFactory.setUsername(rabbitProperties.getUsername());
         connectionFactory.setPassword(rabbitProperties.getPassword());
         return Mono.fromCallable(() -> connectionFactory.newConnection("reactor-rabbit-sample")).cache();
@@ -38,17 +44,12 @@ public class Config {
     @Bean
     public String queue(Sender sender, @Value("${app.user.queue-name}") String queueName) {
         // block for testing purpose
+        sender.declareExchange(ExchangeSpecification.exchange("animal-direct").type("fanout")).block();
         sender.declare(QueueSpecification.queue(queueName)).block();
-        sender.bindQueue(BindingSpecification.binding().queue(queueName).exchange("rabbitmq2").routingKey("")).block();
+        sender.bindQueue(BindingSpecification.binding().queue(queueName).exchange("animal-direct").routingKey(queueName))
+                .block();
         LOGGER.debug("queue {} configured", queueName);
         return queueName;
-    }
-
-    @Bean
-    public String definitions(Sender sender) {
-        sender.declareExchange(ExchangeSpecification.exchange("rabbitmq2").type("fanout")).block();
-        LOGGER.debug("configuration created");
-        return "OK";
     }
 
 }
