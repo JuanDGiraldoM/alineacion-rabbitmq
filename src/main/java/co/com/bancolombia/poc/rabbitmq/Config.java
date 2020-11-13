@@ -46,7 +46,7 @@ public class Config {
         // block for testing purpose
         sender.declareExchange(ExchangeSpecification.exchange("animal-direct").type("fanout")).block();
         sender.declare(QueueSpecification.queue(queueName)).block();
-        sender.bindQueue(BindingSpecification.binding().queue(queueName).exchange("animal-direct").routingKey(queueName))
+        sender.bindQueue(BindingSpecification.binding().queue(queueName).exchange("directMessages").routingKey(queueName))
                 .block();
         LOGGER.debug("queue {} configured", queueName);
         return queueName;
