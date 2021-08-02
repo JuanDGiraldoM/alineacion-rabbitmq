@@ -11,9 +11,20 @@ import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.*;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+
 @Configuration
 public class Config {
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
+
+    private void configureSSL(ConnectionFactory connectionFactory) {
+        try {
+            connectionFactory.useSslProtocol();
+        } catch (NoSuchAlgorithmException | KeyManagementException exception) {
+            LOGGER.error(exception.getMessage());
+        }
+    }
 
     @Bean
     public Mono<Connection> connectionMono(RabbitProperties rabbitProperties) {
@@ -22,6 +33,7 @@ public class Config {
         connectionFactory.setPort(rabbitProperties.getPort());
         connectionFactory.setUsername(rabbitProperties.getUsername());
         connectionFactory.setPassword(rabbitProperties.getPassword());
+        configureSSL(connectionFactory);
         return Mono.fromCallable(() -> connectionFactory.newConnection("reactor-rabbit-sample")).cache();
     }
 
