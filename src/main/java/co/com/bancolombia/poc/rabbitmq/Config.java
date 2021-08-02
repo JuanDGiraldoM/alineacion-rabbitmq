@@ -15,7 +15,7 @@ import reactor.rabbitmq.*;
 @Configuration
 public class Config {
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
-
+    
     @SneakyThrows
     @Bean
     public Mono<Connection> connectionMono(RabbitProperties rabbitProperties) {
