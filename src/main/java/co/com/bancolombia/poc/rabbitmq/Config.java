@@ -71,8 +71,7 @@ public class Config {
         sender.bindQueue(BindingSpecification.binding()
                 .queue(queueName)
                 .exchange("animals-topic")
-//                .routingKey("color.verde"))
-                .routingKey("#.verde.#"))
+                .routingKey("color.*"))
                 .block();
 
         LOGGER.debug("queue {} configured", queueName);
