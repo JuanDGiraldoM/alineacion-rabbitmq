@@ -52,6 +52,7 @@ public class Config {
         // block for testing purpose
         sender.declare(QueueSpecification.queue(queueName)).block();
         LOGGER.debug("queue {} configured", queueName);
+        // TODO: 2. Bind exchange
         return queueName;
     }
 

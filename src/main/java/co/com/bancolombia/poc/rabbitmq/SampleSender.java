@@ -17,13 +17,13 @@ public class SampleSender {
     private final Sender sender;
 
     public SampleSender(Sender sender) {
-        LOGGER.debug("Rest created");
+        LOGGER.info("Rest created");
         this.sender = sender;
     }
 
     @PostMapping("/send")
-    private Mono<String> getEmployeeById(@RequestBody Message message) {
-        LOGGER.debug("Sending Message {}", message.getMessage());
+    private Mono<String> sendMessage(@RequestBody Message message) {
+        LOGGER.info("Sending Message {}", message.getMessage());
         return sender.send(createMessage(message))
                 .thenReturn("OK");
     }
@@ -36,6 +36,5 @@ public class SampleSender {
         );
         return Mono.just(outboundMessage);
     }
-
 
 }
