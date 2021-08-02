@@ -51,8 +51,15 @@ public class Config {
     public String queue(Sender sender, @Value("${app.user.queue-name}") String queueName) {
         // block for testing purpose
         sender.declare(QueueSpecification.queue(queueName)).block();
-        LOGGER.debug("queue {} configured", queueName);
+
         // TODO: 2. Bind exchange
+        sender.bindQueue(BindingSpecification.binding()
+                .queue(queueName)
+                .exchange("animals-direct")
+                .routingKey(queueName))
+                .block();
+
+        LOGGER.debug("queue {} configured", queueName);
         return queueName;
     }
 
