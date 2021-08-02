@@ -53,10 +53,26 @@ public class Config {
         sender.declare(QueueSpecification.queue(queueName)).block();
 
         // TODO: 2. Bind exchange
+        // Fanout
+        sender.bindQueue(BindingSpecification.binding()
+                .queue(queueName)
+                .exchange("animals")
+                .routingKey(""))
+                .block();
+
+        // Direct
         sender.bindQueue(BindingSpecification.binding()
                 .queue(queueName)
                 .exchange("animals-direct")
                 .routingKey(queueName))
+                .block();
+
+        // Topic
+        sender.bindQueue(BindingSpecification.binding()
+                .queue(queueName)
+                .exchange("animals-topic")
+//                .routingKey("color.verde"))
+                .routingKey("#.verde.#"))
                 .block();
 
         LOGGER.debug("queue {} configured", queueName);
