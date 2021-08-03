@@ -1,8 +1,10 @@
 package co.com.bancolombia.poc.rabbitmq;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Delivery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,8 +44,12 @@ public class SampleSender {
         Supplier<String> correlationId = () -> UUID.randomUUID().toString();
         // Create RPC Client with correlation ID param
         RpcClient client = sender.rpcClient(message.getExchange(), message.getRoutingKey(), correlationId);
+        // Create Basic Properties to set replyTo
+        AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+                .replyTo("jgmarin")
+                .build();
         // Send body through rpc request
-        RpcClient.RpcRequest request = new RpcClient.RpcRequest(message.getMessage().getBytes());
+        RpcClient.RpcRequest request = new RpcClient.RpcRequest(properties, message.getMessage().getBytes());
         // Get the response
         Mono<Delivery> response = client.rpc(Mono.just(request));
         // Return the delivery response
